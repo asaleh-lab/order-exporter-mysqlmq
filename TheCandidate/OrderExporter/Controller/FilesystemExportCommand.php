@@ -39,7 +39,7 @@ class FilesystemExportCommand extends AbstractExportCommand
         $filesystem = $objectManager->get(\Magento\Framework\Filesystem::class);
         $media = $filesystem->getDirectoryWrite(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
         $contents = $this->order->getAsString();
-        $media->writeFile(ModuleConstants::FILESYSTEM_EXPORT_PATH, $contents);
+        $media->writeFile(ModuleConstants::FILESYSTEM_EXPORT_PATH . '/' . $this->order->getIncrementId() . 'txt' , $contents);
         return true;
     }
 }
