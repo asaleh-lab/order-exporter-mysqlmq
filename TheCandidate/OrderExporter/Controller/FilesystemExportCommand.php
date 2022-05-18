@@ -28,7 +28,7 @@ class FilesystemExportCommand extends AbstractExportCommand
             if ($exported == false) {
                 $this->logger->critical('Error while exporting an order with No.' . $this->order->getIncrementId() . ' to the filesystem');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->critical($e->getMessage());
         }
     }
@@ -39,7 +39,7 @@ class FilesystemExportCommand extends AbstractExportCommand
         $filesystem = $objectManager->get(\Magento\Framework\Filesystem::class);
         $media = $filesystem->getDirectoryWrite(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
         $contents = $this->order->getAsString();
-        $media->writeFile(ModuleConstants::FILESYSTEM_EXPORT_PATH . '/' . $this->order->getIncrementId() . 'txt' , $contents);
+        $media->writeFile(ModuleConstants::FILESYSTEM_EXPORT_PATH . '/' . $this->order->getIncrementId() . '.txt' , $contents);
         return true;
     }
 }
