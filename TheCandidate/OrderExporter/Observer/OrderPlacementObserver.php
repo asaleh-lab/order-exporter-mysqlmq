@@ -2,7 +2,8 @@
 
 namespace TheCandidate\OrderExporter\Observer;
 
-use TheCandidate\OrderExporter\Api\Data\OrderTopicDataInterface;
+
+use Magento\Sales\Model\Order\Interceptor;
 use TheCandidate\OrderExporter\Controller\OrderBuilder;
 use TheCandidate\OrderExporter\Publisher\OrderExportPublisher;
 use Magento\Framework\Event\Observer;
@@ -12,10 +13,7 @@ use Psr\Log\LoggerInterface;
 
 class OrderPlacementObserver implements ObserverInterface
 {
-    /**
-     * @var OrderTopicDataInterface
-     */
-    protected OrderTopicDataInterface $orderTopicData;
+
 
     /**
      * @var OrderExportPublisher
@@ -44,7 +42,7 @@ class OrderPlacementObserver implements ObserverInterface
     public function execute(Observer $observer): void
     {
         try {
-            $this->queueOrder($observer);
+            $this->queueOrder($observer->getEvent()->getOrder());
         } catch (\Exception $e) {
             $this->logger->info($e->getMessage());
         }
@@ -54,10 +52,8 @@ class OrderPlacementObserver implements ObserverInterface
      * @param Observer $observer
      * @return void
      */
-    private function queueOrder(Observer $observer): void
+    public function queueOrder(Interceptor $orderInterceptor): void
     {
-        $orderInterceptor = $observer->getEvent()->getOrder();
-
         $orderExportBuilder = new OrderBuilder($orderInterceptor);
 
         $orderTopicData = $orderExportBuilder
@@ -67,6 +63,8 @@ class OrderPlacementObserver implements ObserverInterface
 
         $this->publisher->publish($orderTopicData);
     }
+
+
 
 
 }
