@@ -6,14 +6,10 @@ namespace TheCandidate\OrderExporter\Exceptions;
 
 class InvalidOrderException extends \Exception
 {
-    /**
-     * @var string
-     */
-    protected $message;
+    protected $message = "Invalid order, the interceptor has no data";
 
     public function __construct()
     {
-        parent::__construct($this->message);
+        parent::__construct($this->message, 0, null);
     }
-
 }
