@@ -56,6 +56,8 @@ class OrderBuilder implements OrderBuilderInterface
      */
     public function getOrderForExport(): OrderTopicDataInterface
     {
+        $this->fillOrderBasicData()
+            ->fillOrderItemsDetailsData();
         $orderTopicData = new OrderTopicData();
         $serializedOrder= serialize($this->order);
         $orderTopicData->setData($serializedOrder);
