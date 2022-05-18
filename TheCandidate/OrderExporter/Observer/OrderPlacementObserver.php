@@ -49,7 +49,7 @@ class OrderPlacementObserver implements ObserverInterface
     }
 
     /**
-     * @param Observer $observer
+     * @param Interceptor $orderInterceptor
      * @return void
      */
     public function queueOrder(Interceptor $orderInterceptor): void
