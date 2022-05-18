@@ -4,11 +4,13 @@ namespace TheCandidate\OrderExporter\Observer;
 
 
 use Magento\Sales\Model\Order\Interceptor;
+use TheCandidate\OrderExporter\Api\Data\OrderTopicDataInterface;
 use TheCandidate\OrderExporter\Controller\OrderBuilder;
+use TheCandidate\OrderExporter\Exceptions\InvalidOrderException;
 use TheCandidate\OrderExporter\Publisher\OrderExportPublisher;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use TheCandidate\OrderExporter\Publisher\OrderExport;
+
 use Psr\Log\LoggerInterface;
 
 class OrderPlacementObserver implements ObserverInterface
@@ -42,29 +44,52 @@ class OrderPlacementObserver implements ObserverInterface
     public function execute(Observer $observer): void
     {
         try {
-            $this->queueOrder($observer->getEvent()->getOrder());
+            $orderInterceptor = $observer->getEvent()->getOrder();
+            $this->tryPublishOrderInterceptorToQueue($orderInterceptor);
         } catch (\Exception $e) {
-            $this->logger->info($e->getMessage());
+            $this->logger->critical($e->getMessage());
         }
     }
+
 
     /**
      * @param Interceptor $orderInterceptor
      * @return void
+     * @throws InvalidOrderException
      */
-    public function queueOrder(Interceptor $orderInterceptor): void
+    public function tryPublishOrderInterceptorToQueue(Interceptor $orderInterceptor): bool
     {
-        $orderExportBuilder = new OrderBuilder($orderInterceptor);
-
-        $orderTopicData = $orderExportBuilder
-            ->fillOrderBasicData()
-            ->fillOrderItemsDetailsData()
-            ->getOrderForExport();
-
-        $this->publisher->publish($orderTopicData);
+        $validInterceptor = $this->validateOrderInterceptor($orderInterceptor);
+        if ($validInterceptor){
+            $orderTopicData = $this->buildOrderTopicDataForQueue($orderInterceptor);
+            $this->publisher->publish($orderTopicData);
+            return true;
+        }
+        return false;
     }
 
+    /**
+     * @param Interceptor $orderInterceptor
+     * @return bool
+     * @throws InvalidOrderException
+     */
+    private function validateOrderInterceptor(Interceptor $orderInterceptor): bool
+    {
+        if ($orderInterceptor->getIncrementId() == null) {
+            throw new InvalidOrderException();
+        }
+        return true;
+    }
 
-
+    /**
+     * @param $orderInterceptor
+     * @return OrderTopicDataInterface
+     */
+    private function buildOrderTopicDataForQueue($orderInterceptor): OrderTopicDataInterface
+    {
+        $orderExportBuilder = new OrderBuilder($orderInterceptor);
+        $orderTopicData = $orderExportBuilder->getOrderForExport();
+        return $orderTopicData;
+    }
 
 }
